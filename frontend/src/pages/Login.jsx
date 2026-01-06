@@ -1,12 +1,18 @@
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import { apiRequest } from "../api/api";
 import { useAuth } from "../contexts/useAuth";
 
 const Login = () => {
-  const { login } = useAuth();
+  const { user, login } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();

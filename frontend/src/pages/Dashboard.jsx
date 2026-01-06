@@ -1,25 +1,47 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/useAuth";
+import { apiRequest } from "../api/api";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [applications, setApplications] = useState([]);
+  const [error, setError] = useState("");
 
-  if (!user) {
-    return (
-      <div>
-        <h2>Please log in</h2>
-        <p>
-          <Link to="/login">Login</Link> or{" "}
-          <Link to="/register">Create an account</Link>
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const data = await apiRequest(
+          "/applications",
+          "GET",
+          null,
+          user.token
+        );
+        setApplications(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchApplications();
+  }, [user]);
 
   return (
     <div>
-      <h2>Welcome, {user.name}</h2>
-      <p>You are logged in.</p>
+      <h2>My Applications</h2>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {applications.length === 0 ? (
+        <p>No applications yet.</p>
+      ) : (
+        <ul>
+          {applications.map((app) => (
+            <li key={app._id}>
+              <strong>{app.role}</strong> — {app.status}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
