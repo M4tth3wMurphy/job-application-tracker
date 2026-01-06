@@ -19,7 +19,10 @@ export const getApplications = async (req, res) => {
   try {
     const applications = await Application
       .find({ user: req.user._id })
-      .populate("company")
+      .populate({
+        path: "company",
+        select: "name industry location website contacts"
+      })
       .sort({ createdAt: -1 });
 
     res.json(applications);
