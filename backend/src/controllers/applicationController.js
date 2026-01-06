@@ -2,7 +2,11 @@ import Application from "../models/Application.js";
 
 export const createApplication = async (req, res) => {
   try {
-    const application = await Application.create(req.body);
+    const application = await Application.create({
+      ...req.body,
+      user: req.user._id
+    });
+
     res.status(201).json(application);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -12,7 +16,7 @@ export const createApplication = async (req, res) => {
 export const getApplications = async (req, res) => {
   try {
     const applications = await Application
-      .find()
+      .find({ user: req.user._id })
       .populate("company")
       .sort({ createdAt: -1 });
 
@@ -24,9 +28,10 @@ export const getApplications = async (req, res) => {
 
 export const getApplicationById = async (req, res) => {
   try {
-    const application = await Application
-      .findById(req.params.id)
-      .populate("company");
+    const application = await Application.findOne({
+      _id: req.params.id,
+      user: req.user._id
+    }).populate("company");
 
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
@@ -40,8 +45,8 @@ export const getApplicationById = async (req, res) => {
 
 export const updateApplication = async (req, res) => {
   try {
-    const application = await Application.findByIdAndUpdate(
-      req.params.id,
+    const application = await Application.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
       req.body,
       { new: true }
     );
@@ -58,7 +63,10 @@ export const updateApplication = async (req, res) => {
 
 export const deleteApplication = async (req, res) => {
   try {
-    const application = await Application.findByIdAndDelete(req.params.id);
+    const application = await Application.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id
+    });
 
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
