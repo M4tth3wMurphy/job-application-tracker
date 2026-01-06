@@ -6,7 +6,13 @@ export const createApplication = async (req, res) => {
     const application = await Application.create({
       ...req.body,
       status: "Applied",
-      user: req.user._id
+      user: req.user._id,
+      activityLog: [
+        {
+          type: "CREATED",
+          message: "Application created"
+        }
+      ]
     });
 
     res.status(201).json(application);
@@ -59,16 +65,25 @@ export const updateApplication = async (req, res) => {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    if (
-      req.body.status &&
-      !isValidTransition(application.status, req.body.status)
-    ) {
-      return res.status(400).json({
-        message: `Invalid status transition from ${application.status} to ${req.body.status}`
+    if (req.body.status && req.body.status !== application.status) {
+      if (!isValidTransition(application.status, req.body.status)) {
+        return res.status(400).json({
+          message: `Invalid status transition from ${application.status} to ${req.body.status}`
+        });
+      }
+
+      application.activityLog.push({
+        type: "STATUS_CHANGE",
+        message: `Status changed from ${application.status} to ${req.body.status}`
       });
+
+      application.status = req.body.status;
     }
 
-    Object.assign(application, req.body);
+    const { status, ...updates } = req.body;
+
+    Object.assign(application, updates);
+
     await application.save();
 
     res.json(application);
