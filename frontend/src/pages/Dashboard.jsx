@@ -50,13 +50,25 @@ const Dashboard = () => {
       )}
 
       {!loading && applications.length > 0 && (
-        <ul>
+        <div style={{ display: "grid", gap: "1rem" }}>
           {applications.map((app) => (
-            <li key={app._id}>
-              <strong>{app.role}</strong> — {app.status}
-            </li>
+            <div
+              key={app._id}
+              style={{
+                background: "white",
+                padding: "1rem",
+                borderRadius: "6px",
+                border: "1px solid #e5e7eb"
+              }}
+            >
+              <strong>{app.role}</strong>
+              <p style={{ margin: "0.25rem 0" }}>{app.status}</p>
+              {app.salaryRange && (
+                <p style={{ margin: 0, color: "#555" }}>{app.salaryRange}</p>
+              )}
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
