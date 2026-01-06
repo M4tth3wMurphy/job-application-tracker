@@ -1,9 +1,11 @@
 import Application from "../models/Application.js";
+import { isValidTransition } from "../utils/statusTransitions.js";
 
 export const createApplication = async (req, res) => {
   try {
     const application = await Application.create({
       ...req.body,
+      status: "Applied",
       user: req.user._id
     });
 
@@ -45,15 +47,26 @@ export const getApplicationById = async (req, res) => {
 
 export const updateApplication = async (req, res) => {
   try {
-    const application = await Application.findOneAndUpdate(
-      { _id: req.params.id, user: req.user._id },
-      req.body,
-      { new: true }
-    );
+    const application = await Application.findOne({
+      _id: req.params.id,
+      user: req.user._id
+    });
 
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
     }
+
+    if (
+      req.body.status &&
+      !isValidTransition(application.status, req.body.status)
+    ) {
+      return res.status(400).json({
+        message: `Invalid status transition from ${application.status} to ${req.body.status}`
+      });
+    }
+
+    Object.assign(application, req.body);
+    await application.save();
 
     res.json(application);
   } catch (error) {
